@@ -1,17 +1,19 @@
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var poststylus = require('poststylus');
 const webpack = require("webpack");
 const path = require("path");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
   // メインとなるJavaScriptファイル（エントリーポイント）
+  // watch: true,
   entry: './src/ts/main.ts',
   // ファイルの出力設定
   output: {
     //  出力ファイルのディレクトリ名
-    path: `${__dirname}/docs/js`,
+    path: `${__dirname}/docs`,
     // 出力ファイル名
-    filename: 'bundle.js'
+    filename: 'js/bundle.js'
   },
   plugins: [
       new HtmlWebpackPlugin({
@@ -19,8 +21,15 @@ module.exports = {
       template: 'src/pug/index.pug',  // この行を変更
       inject: true
     }),
-    new ExtractTextPlugin("main.css"),
-    new webpack.LoaderOptionsPlugin({ minimize: true })
+    new ExtractTextPlugin("./css/main.css"),
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      options: {
+        stylus: {
+          use: [poststylus([ 'autoprefixer', 'rucksack-css' ])]
+        }
+      }
+    })
   ],
   module: {
     rules: [
@@ -42,7 +51,7 @@ module.exports = {
       },
       {
         // Stylusファイル用の処理
-        test: /\.styl/,
+        test: /\.(css|sass|styl)/,
         use: ExtractTextPlugin.extract({
           use: ["css-loader", "stylus-loader"]
         })
@@ -54,6 +63,10 @@ module.exports = {
     extensions: [
       '.ts', '.js', '.json', '.pug', '.styl'
     ],
+  },
+  devServer: {
+    contentBase: path.resolve(__dirname, 'docs'),
+    port: 3000,
   },
   // ソースマップを有効に
   devtool: 'source-map'

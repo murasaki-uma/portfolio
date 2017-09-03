@@ -69,29 +69,24 @@
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sub__ = __webpack_require__(3);
-var html = __webpack_require__(1);
-var css = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sub__ = __webpack_require__(2);
+// let html = require('../pug/index.pug');
+var css = __webpack_require__(1);
 
 var message = 'Hello World';
 // sub.jsに定義されたJavaScriptを実行する。
 Object(__WEBPACK_IMPORTED_MODULE_0__sub__["a" /* hello */])(message);
+console.log("sabun!");
 
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><link href=\"bundle.css\" rel=\"stylesheet\"></head><body></body></html>"
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 3 */
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
