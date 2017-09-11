@@ -17,7 +17,11 @@ uniform float border;
         vec4 orgTemp = texture2D( textureOriginVerts, vUv );
         if(threshold*texImgHeight-texImgHeight/2.0 > orgTemp.y)
         {
-            discard;
+            if(orgTemp.w > 0.0 && orgTemp.w < 1.0)
+            {
+                discard;
+            }
+
         }
       gl_FragColor = texture2D(map, vUv);
     }

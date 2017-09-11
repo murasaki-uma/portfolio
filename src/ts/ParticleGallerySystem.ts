@@ -303,7 +303,8 @@ export default class ParticleGallerySystem
             map : {value:new THREE.TextureLoader().load( "texture/MonaLisa.jpg" )},
             mapNext : {value:new THREE.TextureLoader().load( "texture/PearlGirl.jpg" )},
             texImgWidth : {value:this.imgWidth},
-            texImgHeight : {value:this.imgHeight}
+            texImgHeight : {value:this.imgHeight},
+            scenePos: {value:this.scenePos},
         }
 
         let planeMaterial = new THREE.ShaderMaterial( {
@@ -451,6 +452,7 @@ export default class ParticleGallerySystem
             this.originVertsUniforms.isReset.value = this.isAnimationTimeReset;
             this.animationUniforms.isReset.value = this.isAnimationTimeReset;
             this.particleUniforms.scenePos.value = this.scenePos;
+            this.imgUniforms.scenePos.value = this.scenePos;
 
             console.log(this.threshold.value);
             this.render();
