@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "webpack-dev-server --inline",
+    "start": "webpack-dev-server --port 3000 --hot --host 0.0.0.0",
     "build": "webpack --devtool source-map",
     "release": "-- --optimize-minimize"
   },

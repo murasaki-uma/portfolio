@@ -22,7 +22,7 @@ console.log(ComputeAnimationFrag);
 
 export default class ParticleGallerySystem
 {
-    private WIDTH = 100;
+    private WIDTH = 30;
     private PARTICLES:number = this.WIDTH * this.WIDTH;
 
     private stats:any;
@@ -86,6 +86,7 @@ export default class ParticleGallerySystem
 
         // 一般的なThree.jsにおける定義部分
         this.container = document.createElement( 'div' );
+        this.container.id = "test";
         document.body.appendChild( this.container );
         this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 5, 15000 );
         this.camera.position.y = 0;
@@ -96,12 +97,10 @@ export default class ParticleGallerySystem
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.container.appendChild( this.renderer.domElement );
-        this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
-        this.stats = new Stats();
-        this.container.appendChild( this.stats.domElement );
+        // this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
         window.addEventListener( 'resize', this.onWindowResize, false );
-        window.addEventListener('click',this.onClick,false);
-
+        this.container.addEventListener('click',this.onClick,false);
+        // this.container.addEventListener('touchend',this.onClick,false);
 
         this.initValues();
 
@@ -111,6 +110,10 @@ export default class ParticleGallerySystem
         // ②particle 初期化
         this.initPosition();
 
+        this.onWindowResize();
+
+        this.stats = new Stats();
+        document.body.appendChild( this.stats.domElement );
 
 
     }
@@ -352,7 +355,7 @@ export default class ParticleGallerySystem
 
 
            console.log(EASE.Expo.easeInOut);
-           this.tween_threshold = new TimeLineMax({delay:0.5,ease:EASE.Expo.easeInOut}).to(this.threshold,1.0,{value:1.0});
+           this.tween_threshold = new TimeLineMax({delay:0.5}).to(this.threshold,2.0,{value:1.0});
 
            this.pre_translatePosition.y = this.translatePosition.y;
            this.translatePosition.y +=  this.galleryMoveStep;

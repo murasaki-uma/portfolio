@@ -12,6 +12,11 @@ float exponentialInOut(float t) {
       : -0.5 * pow(2.0, 10.0 - (t * 20.0)) + 1.0;
 }
 
+float exponentialOut(float t) {
+  return t == 1.0 ? t : 1.0 - pow(2.0, -10.0 * t);
+}
+
+
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 anmPos = texture2D( textureAnimation, uv );
@@ -28,8 +33,8 @@ void main() {
     {
         if(anmPos.w <= 1.0)
         {
-            anmPos.w += 0.02;
-            anmPos.y = exponentialInOut(anmPos.w);
+            anmPos.w += 0.01;
+            anmPos.y = exponentialOut(anmPos.w);
         }
 
     }
