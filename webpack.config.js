@@ -56,12 +56,16 @@ module.exports = {
           use: ["css-loader", "stylus-loader"]
         })
       },
+      {
+        test: /\.(glsl|vs|fs|frag|vert)$/,
+        loader: 'shader-loader'
+      }
     ]
   },
   // import 文で .ts ファイルを解決するため
   resolve: {
     extensions: [
-      '.ts', '.js', '.json', '.pug', '.styl'
+      '.ts', '.js', '.json', '.pug', '.styl', '.glsl', '.frag', '.vert'
     ],
   },
   devServer: {
