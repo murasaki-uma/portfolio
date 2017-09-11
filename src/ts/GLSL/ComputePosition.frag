@@ -32,15 +32,15 @@ void main() {
     if(threshold*texImgHeight-texImgHeight/2.0 > tmpOrg.y)
     {
         float t = 0.0;
-        if(tmpAnm.y >= 0.99)
+        if(tmpAnm.y >= 0.9999)
         {
             t = 0.0;
         } else
         {
             t = tmpAnm.y;
         }
-        pos.x =  vel.x*sin(t*Pi) + tmpOrg.x;
-        pos.z =  vel.z*sin(t*Pi) + tmpOrg.z;
+        pos.x =  vel.x*sin(t*Pi)*4.0 + tmpOrg.x;
+        pos.z =  vel.z*sin(t*Pi)*4.0 + tmpOrg.z;
         pos.y = tmpAnm.y * galleryMoveStep + preTranslatePos.y + tmpOrg.y;
         tmpPos.w -= 0.25 * 0.0;
     }

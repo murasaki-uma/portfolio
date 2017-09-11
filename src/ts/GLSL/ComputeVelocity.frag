@@ -171,9 +171,9 @@ vec3 mod289(vec3 x) {
                 vec3 vel = tmpVel.xyz;
                 if(threshold*texImgHeight-texImgHeight/2.0 > orgPos.y)
                 {
-                    vel += curlNoise(pos.xyz*0.02);
+                    vel += curlNoise(pos.xyz*0.01);
                 } else
-                {
+                 {
                     vel = vec3(0,0,0);
                 }
 //

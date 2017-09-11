@@ -15,6 +15,10 @@ void main() {
     diffuseColor *= 1.0 - anmTemp.y;
     vec4 diffuseColorNext = texture2D(mapNext, vec2(vUv.x,1.0-vUv.y));
     diffuseColorNext *= anmTemp.y;
+    if(anmTemp.w >= 0.90)
+    {
+//        discard;
+    }
     //vColor.w = 0.1;
     gl_FragColor =  diffuseColor + diffuseColorNext;
 

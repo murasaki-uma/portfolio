@@ -25,7 +25,7 @@ console.log(ComputeAnimationFrag);
 
 export default class ParticleGallerySystem
 {
-    private WIDTH = 30;
+    private WIDTH = 200;
     private PARTICLES:number = this.WIDTH * this.WIDTH;
 
     private stats:any;
@@ -58,8 +58,8 @@ export default class ParticleGallerySystem
     private effectController:any;
 
 
-    private imgWidth:number = 80;
-    private imgHeight:number = 100;
+    private imgWidth:number = 80.0;
+    private imgHeight:number = 100.0;
     public galleryCount =  0;
     public imgNum:number = 2;
 
@@ -85,6 +85,7 @@ export default class ParticleGallerySystem
     public overImgMesh:THREE.Mesh;
     public tween_overImgPos:any;
 
+    public textures:THREE.Texture[] = [];
 
     constructor()
     {
@@ -94,6 +95,8 @@ export default class ParticleGallerySystem
 
     public init() {
 
+        this.textures.push(new THREE.TextureLoader().load( "texture/MonaLisa.jpg" ));
+        this.textures.push(new THREE.TextureLoader().load( "texture/PearlGirl.jpg" ));
 
         // 一般的なThree.jsにおける定義部分
         this.container = document.createElement( 'div' );
@@ -109,7 +112,7 @@ export default class ParticleGallerySystem
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.container.appendChild( this.renderer.domElement );
-        this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+        // this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
         window.addEventListener( 'resize', this.onWindowResize, false );
         this.container.addEventListener('click',this.onClick,false);
         // this.container.addEventListener('touchend',this.onClick,false);
@@ -272,8 +275,8 @@ export default class ParticleGallerySystem
             scenePos: {value:this.scenePos},
             translatePos:{value: this.translatePosition},
             cameraConstant: { value: this.getCameraConstant(this.camera) },
-            map : {value:new THREE.TextureLoader().load( "texture/MonaLisa.jpg" )},
-            mapNext : {value:new THREE.TextureLoader().load( "texture/PearlGirl.jpg" )},
+            map : {value: this.textures[0]},
+            mapNext : {value: this.textures[1]},
             texImgWidth : {value:this.imgWidth},
             texImgHeight : {value:this.imgHeight}
         };
@@ -299,24 +302,27 @@ export default class ParticleGallerySystem
         this.imgUniforms = {
             threshold:this.threshold,
             textureOriginVerts: {value: null},
+            textureAnimation: {value: null},
             texturePosition: { value: null },
-            map : {value:new THREE.TextureLoader().load( "texture/MonaLisa.jpg" )},
-            mapNext : {value:new THREE.TextureLoader().load( "texture/PearlGirl.jpg" )},
+            map : {value: this.textures[0]},
+            mapNext : {value: this.textures[1]},
             texImgWidth : {value:this.imgWidth},
             texImgHeight : {value:this.imgHeight},
             scenePos: {value:this.scenePos},
+            galleryMoveStep: {value:this.galleryMoveStep}
         }
 
         let planeMaterial = new THREE.ShaderMaterial( {
             uniforms:       this.imgUniforms,
             vertexShader:   OverImageVerts,
-            fragmentShader: OverImageFrag
+            fragmentShader: OverImageFrag,
+            transparent: true
         });
 
         let plane = new THREE.PlaneGeometry(this.imgWidth,this.imgHeight);
 
         this.overImgMesh = new THREE.Mesh(plane, planeMaterial);
-        this.overImgMesh.position.z = 10;
+        this.overImgMesh.position.z = 6;
 
         this.scene.add(this.overImgMesh);
     }
@@ -402,6 +408,21 @@ export default class ParticleGallerySystem
     {
        if(evt.button == 0)
        {
+
+
+           let num = this.galleryCount%2;
+           let numNext = num +1;
+           if(numNext >= this.textures.length)
+           {
+               numNext = 0;
+           }
+
+           this.particleUniforms.map.value = this.textures[num];
+           this.particleUniforms.mapNext.value = this.textures[numNext];
+
+           this.imgUniforms.map.value = this.textures[num];
+           this.imgUniforms.mapNext.value = this.textures[numNext];
+
            this.galleryCount++;
            this.isAnimationTimeReset = true;
            console.log('click');
@@ -415,7 +436,7 @@ export default class ParticleGallerySystem
 
 
            console.log(EASE.Expo.easeInOut);
-           this.tween_threshold = new TimeLineMax({delay:0.5}).to(this.threshold,2.0,{value:1.0});
+           this.tween_threshold = new TimeLineMax({delay:0.5}).to(this.threshold,2.0,{value:1.5});
 
            this.pre_translatePosition.y = this.translatePosition.y;
            this.translatePosition.y +=  this.galleryMoveStep;
@@ -476,6 +497,8 @@ export default class ParticleGallerySystem
         this.particleUniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
         this.particleUniforms.textureOriginVerts.value = this.gpuCompute.getCurrentRenderTarget( this.originVertsVariable ).texture;
 
+
+        this.imgUniforms.textureAnimation.value = this.gpuCompute.getCurrentRenderTarget( this.animationVariable ).texture;
         this.imgUniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
         this.imgUniforms.textureOriginVerts.value = this.gpuCompute.getCurrentRenderTarget( this.originVertsVariable ).texture;
 

@@ -23,8 +23,8 @@ void main() {
 
     // ポイントのサイズを決定
     vec3 dfPointSize = vec3(gl_PointSize/2.0,gl_PointSize/2.0, 0);
-    vec4 mvPosition = modelViewMatrix * vec4( pos+scenePos+vec3(2.5,2.5,0), 1.0 );
-    gl_PointSize = 5.0 * cameraConstant / ( - mvPosition.z );
+    vec4 mvPosition = modelViewMatrix * vec4( pos+scenePos, 1.0 );
+    gl_PointSize = 1.0 * cameraConstant / ( - mvPosition.z );
 
 
     // uv情報の引き渡し

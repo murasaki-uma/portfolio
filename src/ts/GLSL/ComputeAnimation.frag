@@ -32,11 +32,11 @@ void main() {
 
     if(threshold*texImgHeight - texImgHeight/2.0 > orgPos.y)
     {
-        if(anmPos.w < 1.0)
-        {
+//        if(anmPos.w <= 1.0)
+//        {
             anmPos.w += 0.01;
             anmPos.y = exponentialOut(anmPos.w);
-        }
+//        }
 
     }
 
