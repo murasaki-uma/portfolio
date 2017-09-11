@@ -13,6 +13,9 @@ const ComputeVelocityFrag = require("./GLSL/ComputeVelocity.frag");
 const GPUParticleFrag = require("./GLSL/GPUParticle.frag");
 const GPUParticleVert = require("./GLSL/GPUParticle.vert");
 const ComputeAnimationFrag = require('./GLSL/ComputeAnimation.frag');
+const ComputeOriginVertsFrag = require('./GLSL/ComputeOriginVerts.frag');
+const OverImageFrag = require('./GLSL/OverImage.frag');
+const OverImageVerts = require('./GLSL/OverImage.vert');
 console.log(ComputePositionFrag);
 console.log(ComputeVelocityFrag);
 console.log(GPUParticleFrag);
@@ -45,11 +48,13 @@ export default class ParticleGallerySystem
     private velocityVariable;
     private positionVariable;
     private animationVariable;
+    private originVertsVariable;
 
     private positionUniforms:any;
     private velocityUniforms:any;
     private particleUniforms;
     private animationUniforms;
+    private originVertsUniforms;
     private effectController:any;
 
 
@@ -66,7 +71,7 @@ export default class ParticleGallerySystem
 
     public tween_cameraPosition:any;
 
-    public galleryMoveStep:number = -90;
+    public galleryMoveStep:number = -100;
     public scenePos:THREE.Vector3;
     public translatePosition:THREE.Vector3;
     public pre_translatePosition:THREE.Vector3;
@@ -75,6 +80,12 @@ export default class ParticleGallerySystem
 
     public animationOriginalArray = [];
     public isAnimationTimeReset:boolean = false;
+
+    public imgUniforms:any;
+    public overImgMesh:THREE.Mesh;
+    public tween_overImgPos:any;
+
+
     constructor()
     {
         this.init();
@@ -90,6 +101,7 @@ export default class ParticleGallerySystem
         document.body.appendChild( this.container );
         this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 5, 15000 );
         this.camera.position.y = 0;
+        this.camera.position.x = 0;
         this.camera.position.z = 150;
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer();
@@ -97,7 +109,7 @@ export default class ParticleGallerySystem
         this.renderer.setPixelRatio( window.devicePixelRatio );
         this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.container.appendChild( this.renderer.domElement );
-        // this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
+        this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
         window.addEventListener( 'resize', this.onWindowResize, false );
         this.container.addEventListener('click',this.onClick,false);
         // this.container.addEventListener('touchend',this.onClick,false);
@@ -127,6 +139,7 @@ export default class ParticleGallerySystem
         this.tween_threshold = new TimelineMax({delay:0.0,repeat:0});
         this.tween_translate = new TimelineMax({delay:0,repeat:0});
         this.tween_cameraPosition = new TimelineMax({delay:0,repeat:0});
+        this.tween_overImgPos = new TimeLineMax({delay:0,repeat:0});
     }
 
 
@@ -140,25 +153,29 @@ export default class ParticleGallerySystem
         let dtPosition = this.gpuCompute.createTexture();
         let dtVelocity = this.gpuCompute.createTexture();
         let dtAnimation = this.gpuCompute.createTexture();
+        let dtOriginVerts = this.gpuCompute.createTexture();
         // テクスチャにGPUで計算するために初期情報を埋めていく
-        this.fillTextures( dtPosition, dtVelocity ,dtAnimation);
+        this.fillTextures( dtPosition, dtVelocity ,dtAnimation, dtOriginVerts);
 
         // shaderプログラムのアタッチ
         this.velocityVariable = this.gpuCompute.addVariable( "textureVelocity", ComputeVelocityFrag, dtVelocity );
         this.positionVariable = this.gpuCompute.addVariable( "texturePosition", ComputePositionFrag, dtPosition );
-        this.animationVariable = this.gpuCompute.addVariable('textureAnimation', ComputeAnimationFrag,dtAnimation)
+        this.animationVariable = this.gpuCompute.addVariable('textureAnimation', ComputeAnimationFrag,dtAnimation);
+        this.originVertsVariable = this.gpuCompute.addVariable('textureOriginVerts', ComputeOriginVertsFrag,dtOriginVerts);
 
         // 一連の関係性を構築するためのおまじない
-        let valArray = [ this.positionVariable, this.velocityVariable,this.animationVariable ];
+        let valArray = [ this.positionVariable, this.velocityVariable,this.animationVariable, this.originVertsVariable ];
         this.gpuCompute.setVariableDependencies( this.velocityVariable, valArray );
         this.gpuCompute.setVariableDependencies( this.positionVariable, valArray );
         this.gpuCompute.setVariableDependencies( this.animationVariable, valArray );
+        this.gpuCompute.setVariableDependencies( this.originVertsVariable, valArray );
 
 
 
         this.positionUniforms = this.positionVariable.material.uniforms;
         this.velocityUniforms = this.velocityVariable.material.uniforms;
         this.animationUniforms = this.animationVariable.material.uniforms;
+        this.originVertsUniforms = this.originVertsVariable.material.uniforms;
 
         this.positionUniforms.translatePos = {value:this.translatePosition};
         this.positionUniforms.preTranslatePos = {value:this.pre_translatePosition};
@@ -182,6 +199,14 @@ export default class ParticleGallerySystem
         this.animationUniforms.texImgHeight = {value:this.imgHeight};
         this.animationUniforms.galleryCount = {value: this.galleryCount};
         this.animationUniforms.isReset = {value:false};
+
+
+        this.originVertsUniforms.translatePos = {value:this.translatePosition};
+        this.originVertsUniforms.threshold = this.threshold;
+        this.originVertsUniforms.texImgWidth  = {value:this.imgWidth};
+        this.originVertsUniforms.texImgHeight = {value:this.imgHeight};
+        this.originVertsUniforms.galleryCount = {value: this.galleryCount};
+        this.originVertsUniforms.isReset = {value:false};
         // error処理
         var error = this.gpuCompute.init();
         if ( error !== null ) {
@@ -194,7 +219,8 @@ export default class ParticleGallerySystem
         var dtPosition = this.gpuCompute.createTexture();
         var dtVelocity = this.gpuCompute.createTexture();
         let dtAnimation = this.gpuCompute.createTexture();
-        this.fillTextures( dtPosition, dtVelocity ,dtAnimation);
+        let dtOriginVerts = this.gpuCompute.createTexture();
+        this.fillTextures( dtPosition, dtVelocity ,dtAnimation, dtOriginVerts);
         this.gpuCompute.renderTexture( dtPosition, this.positionVariable.renderTargets[ 0 ] );
         this.gpuCompute.renderTexture( dtPosition, this.positionVariable.renderTargets[ 1 ] );
         this.gpuCompute.renderTexture( dtVelocity, this.velocityVariable.renderTargets[ 0 ] );
@@ -242,10 +268,12 @@ export default class ParticleGallerySystem
             texturePosition: { value: null },
             textureVelocity: { value: null },
             textureAnimation: {value: null},
+            textureOriginVerts: {value: null},
             scenePos: {value:this.scenePos},
             translatePos:{value: this.translatePosition},
             cameraConstant: { value: this.getCameraConstant(this.camera) },
             map : {value:new THREE.TextureLoader().load( "texture/MonaLisa.jpg" )},
+            mapNext : {value:new THREE.TextureLoader().load( "texture/PearlGirl.jpg" )},
             texImgWidth : {value:this.imgWidth},
             texImgHeight : {value:this.imgHeight}
         };
@@ -266,15 +294,40 @@ export default class ParticleGallerySystem
 
         // パーティクルをシーンに追加
         this.scene.add( particles );
+
+
+        this.imgUniforms = {
+            threshold:this.threshold,
+            textureOriginVerts: {value: null},
+            texturePosition: { value: null },
+            map : {value:new THREE.TextureLoader().load( "texture/MonaLisa.jpg" )},
+            mapNext : {value:new THREE.TextureLoader().load( "texture/PearlGirl.jpg" )},
+            texImgWidth : {value:this.imgWidth},
+            texImgHeight : {value:this.imgHeight}
+        }
+
+        let planeMaterial = new THREE.ShaderMaterial( {
+            uniforms:       this.imgUniforms,
+            vertexShader:   OverImageVerts,
+            fragmentShader: OverImageFrag
+        });
+
+        let plane = new THREE.PlaneGeometry(this.imgWidth,this.imgHeight);
+
+        this.overImgMesh = new THREE.Mesh(plane, planeMaterial);
+        this.overImgMesh.position.z = 10;
+
+        this.scene.add(this.overImgMesh);
     }
 
 
-    public fillTextures( texturePosition, textureVelocity, textureAnimation ) {
+    public fillTextures( texturePosition, textureVelocity, textureAnimation, textureOriginVerts ) {
 
         // textureのイメージデータをいったん取り出す
         var posArray = texturePosition.image.data;
         var velArray = textureVelocity.image.data;
         let amArray = textureAnimation.image.data;
+        let vertsArray = textureOriginVerts.image.data;
         let xCounter = 1;
         let yCounter = 1;
         // パーティクルの初期の位置は、ランダムなXZに平面おく。
@@ -303,15 +356,20 @@ export default class ParticleGallerySystem
 
             // 移動する方向はとりあえずランダムに決めてみる。
             // これでランダムな方向にとぶパーティクルが出来上がるはず。
-            velArray[ k + 0 ] = Math.random()*2-1;
-            velArray[ k + 1 ] = Math.random()*2-1;
-            velArray[ k + 2 ] = Math.random()*2-1;
-            velArray[ k + 3 ] = Math.random()*2-1;
+            velArray[ k + 0 ] = 0;
+            velArray[ k + 1 ] = 0;
+            velArray[ k + 2 ] = 0;
+            velArray[ k + 3 ] = 0;
 
             amArray[ k + 0 ] = y;
             amArray[ k + 1 ] = 0;
             amArray[ k + 2 ] = y;
             amArray[ k + 3 ] = 0;
+
+            vertsArray[ k + 0 ] = x;
+            vertsArray[ k + 1 ] = y;
+            vertsArray[ k + 2 ] = z;
+            vertsArray[ k + 3 ] = 0;
 
             this.animationOriginalArray[ k + 0 ] = y;
             this.animationOriginalArray[ k + 1 ] = 0;
@@ -352,6 +410,7 @@ export default class ParticleGallerySystem
            this.threshold.value = 0.0;
            // this.camera.position.y = 0;
 
+           this.overImgMesh.position.y = 0;
 
 
            console.log(EASE.Expo.easeInOut);
@@ -362,7 +421,9 @@ export default class ParticleGallerySystem
            this.positionUniforms.translatePos.value = this.translatePosition;
            this.positionUniforms.preTranslatePos.value = this.pre_translatePosition;
 
-           this.tween_sceneTranslate = new new TimeLineMax({delay:0.0,ease:EASE.Expo.easeOut}).to(this.scenePos,0.6,{y:-this.translatePosition.y});
+           this.tween_sceneTranslate = new TimeLineMax({delay:0.0,ease:EASE.Expo.easeOut}).to(this.scenePos,0.6,{y:-this.translatePosition.y});
+
+           this.tween_overImgPos = new TimeLineMax({delay:0.0,ease:EASE.Expo.easeOut}).to(this.overImgMesh.position,0.7,{y:-this.galleryMoveStep});
            // this.velocityUniforms.translatePos = {value:this.translatePosition};
 
 
@@ -379,11 +440,15 @@ export default class ParticleGallerySystem
         {
 
 
+
+
+            // this.overImgMesh.position.y = this.scenePos.y;//+this.galleryCount * this.galleryMoveStep;
             this.timer += this.timerSpeed;
             this.positionUniforms.threshold = this.threshold;
             this.animationUniforms.threshold = this.threshold;
             this.velocityUniforms.threshold = this.threshold;
-
+            this.originVertsUniforms.threshold = this.threshold;
+            this.originVertsUniforms.isReset.value = this.isAnimationTimeReset;
             this.animationUniforms.isReset.value = this.isAnimationTimeReset;
             this.particleUniforms.scenePos.value = this.scenePos;
 
@@ -407,6 +472,11 @@ export default class ParticleGallerySystem
         this.particleUniforms.textureAnimation.value = this.gpuCompute.getCurrentRenderTarget( this.animationVariable ).texture;
         this.particleUniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
         this.particleUniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
+        this.particleUniforms.textureOriginVerts.value = this.gpuCompute.getCurrentRenderTarget( this.originVertsVariable ).texture;
+
+        this.imgUniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
+        this.imgUniforms.textureOriginVerts.value = this.gpuCompute.getCurrentRenderTarget( this.originVertsVariable ).texture;
+
         this.renderer.render( this.scene, this.camera );
         // console.log(this.animationVariable )
     }

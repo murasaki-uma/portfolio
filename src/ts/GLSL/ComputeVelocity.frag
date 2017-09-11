@@ -152,7 +152,7 @@ vec3 mod289(vec3 x) {
                 vec4 tmpVel = texture2D( textureVelocity, uv );
 
                 vec4 anmPos = texture2D( textureAnimation, uv );
-
+                vec4 orgPos = texture2D( textureOriginVerts, uv );
                 /*
                 float _scale = 0.001;
 
@@ -168,15 +168,18 @@ vec3 mod289(vec3 x) {
                 */
 
 
-                vec3 vel = vec3(0,0,0);
-                if(threshold*texImgHeight-texImgHeight/2.0 > anmPos.x)
+                vec3 vel = tmpVel.xyz;
+                if(threshold*texImgHeight-texImgHeight/2.0 > orgPos.y)
                 {
-                    vel = curlNoise(pos.xyz*0.05)*0.01;
+                    vel += curlNoise(pos.xyz*0.02);
                 } else
-
                 {
-
+                    vel = vec3(0,0,0);
                 }
+//
+//                {
+//
+//                }
 
                 //vel = normalize(vel);
                 //vel = vec3(1.0,1.0,1.0);

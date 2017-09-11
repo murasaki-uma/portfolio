@@ -21,6 +21,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 anmPos = texture2D( textureAnimation, uv );
     vec4 tmpPos = texture2D( texturePosition, uv );
+    vec4 orgPos = texture2D( textureOriginVerts, uv );
     vec3 pos = tmpPos.xyz;
 
     if(isReset)
@@ -29,9 +30,9 @@ void main() {
         anmPos.y = 0.0;
     }
 
-    if(threshold*texImgHeight - texImgHeight/2.0 > anmPos.x)
+    if(threshold*texImgHeight - texImgHeight/2.0 > orgPos.y)
     {
-        if(anmPos.w <= 1.0)
+        if(anmPos.w < 1.0)
         {
             anmPos.w += 0.01;
             anmPos.y = exponentialOut(anmPos.w);

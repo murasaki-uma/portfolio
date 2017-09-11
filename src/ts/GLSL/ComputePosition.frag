@@ -20,6 +20,7 @@ void main() {
     vec3 pos = tmpPos.xyz;
     vec4 tmpVel = texture2D( textureVelocity, uv );
     vec4 tmpAnm = texture2D( textureAnimation, uv );
+    vec4 tmpOrg = texture2D( textureOriginVerts, uv );
     // velが移動する方向(もう一つ下のcomputeShaderVelocityを参照)
     vec3 vel = tmpVel.xyz;
 //    vel.y *= 4.0;
@@ -28,11 +29,19 @@ void main() {
 
 
     // 移動する方向に速度を掛け合わせた数値を現在地に加える。
-    if(threshold*texImgHeight-texImgHeight/2.0 > tmpAnm.x)
+    if(threshold*texImgHeight-texImgHeight/2.0 > tmpOrg.y)
     {
-//        pos.x += vel.x;
-//        pos.z += vel.z;
-        pos.y = tmpAnm.y * galleryMoveStep + preTranslatePos.y + tmpAnm.x;
+        float t = 0.0;
+        if(tmpAnm.y >= 0.99)
+        {
+            t = 0.0;
+        } else
+        {
+            t = tmpAnm.y;
+        }
+        pos.x =  vel.x*sin(t*Pi) + tmpOrg.x;
+        pos.z =  vel.z*sin(t*Pi) + tmpOrg.z;
+        pos.y = tmpAnm.y * galleryMoveStep + preTranslatePos.y + tmpOrg.y;
         tmpPos.w -= 0.25 * 0.0;
     }
 
