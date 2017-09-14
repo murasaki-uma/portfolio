@@ -1,8 +1,13 @@
 declare function require(x: string): any;
+
 import * as THREE from 'three';
+
 const Stats = require('stats-js');
+
 import * as $ from 'jquery';
+
 import 'imports-loader?THREE=three!../../node_modules/three/examples/js/controls/OrbitControls';
+
 import GPUComputationRenderer from './GPUComputationRenderer';
 const TimelineMax = require('gsap/TimelineMax');
 console.log(GPUComputationRenderer);
@@ -21,7 +26,6 @@ console.log(ComputeVelocityFrag);
 console.log(GPUParticleFrag);
 console.log(GPUParticleVert);
 console.log(ComputeAnimationFrag);
-
 
 export default class ParticleGallerySystem
 {

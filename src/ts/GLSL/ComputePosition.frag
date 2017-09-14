@@ -39,8 +39,8 @@ void main() {
         {
             t = tmpAnm.y;
         }
-        pos.x =  vel.x*sin(t*Pi)*4.0 + tmpOrg.x;
-        pos.z =  vel.z*sin(t*Pi)*4.0 + tmpOrg.z;
+        pos.x =  vel.x*sin(t*Pi)*2.0 + tmpOrg.x;
+        pos.z =  vel.z*sin(t*Pi)*2.0 + tmpOrg.z;
         pos.y = tmpAnm.y * galleryMoveStep + preTranslatePos.y + tmpOrg.y;
         tmpPos.w -= 0.25 * 0.0;
     }
