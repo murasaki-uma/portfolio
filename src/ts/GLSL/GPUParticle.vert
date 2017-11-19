@@ -2,9 +2,10 @@
 uniform float cameraConstant;
 uniform float density;
 varying vec4 vColor;
+varying vec2 vPosition;
 varying vec2 vUv;
 uniform float radius;
-
+uniform float pointSize;
 
 
 void main() {
@@ -13,10 +14,11 @@ void main() {
     vColor = vec4( 1.0, 0.7, 1.0, 1.0 );
 
     // ポイントのサイズを決定
-    vec4 mvPosition = modelViewMatrix * vec4( pos, 1.0 );
-    gl_PointSize = 0.5 * cameraConstant / ( - mvPosition.z );
+    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+    gl_PointSize = 0.3 * cameraConstant / ( - mvPosition.z );
 
     // uv情報の引き渡し
+    vPosition = position.xy;
     vUv = uv;
 
     // 変換して格納

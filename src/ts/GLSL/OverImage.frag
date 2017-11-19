@@ -7,14 +7,18 @@ uniform float texImgHeight;
 uniform float threshold;
 uniform sampler2D textureOriginVerts;
 uniform sampler2D textureAnimation;
+uniform sampler2D textureVelocity;
+uniform sampler2D texturePosition;
 uniform sampler2D map;
 uniform sampler2D mapNext;
 
     void main()
     {
 
+        vec4 tmpPos = texture2D( texturePosition, uv );
         vec4 anmTemp = texture2D( textureAnimation, vUv );
         vec4 orgTemp = texture2D( textureOriginVerts, vUv );
+        vec4 velocity = texture2D(textureVelocity,vUv);
         if(threshold*texImgHeight - texImgHeight/2.0 > orgTemp.y)
         {
             if(anmTemp.y < 0.999)

@@ -57,6 +57,10 @@ module.exports = {
         })
       },
       {
+        test: /\.(jpg|png|gif|svg|)$/,
+        loader: ['url-loader']
+      },
+      {
         test: /\.(glsl|vs|fs|frag|vert)$/,
         loader: 'shader-loader'
       }

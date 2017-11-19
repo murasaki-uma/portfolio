@@ -4,6 +4,8 @@ import * as $ from "jquery";
 import * as THREE from 'three';
 import 'imports-loader?THREE=three!../../node_modules/three/examples/js/controls/OrbitControls';
 
+import GUI from './GUI';
+// import GUIParameters
 export default class VThree
 {
     // 現在のシーンの番号
@@ -31,6 +33,9 @@ export default class VThree
     private debugCounter:number = 0;
 
     public oscValue:any[] = [];
+
+    public gui:GUI;
+
     constructor(config?:any)
     {
 
@@ -46,7 +51,7 @@ export default class VThree
         document.addEventListener("keydown", this.onKeyDown, true);
         document.addEventListener("keyup", this.onKeyUp, true);
         document.addEventListener("mousemove", this.onMouseMove, true);
-
+        // this.gui = new GUI();
     }
 
     public initOrbitContorols()
@@ -62,6 +67,7 @@ export default class VThree
     }
     public init()
     {
+
 
         // Rendererを作る
         this.renderer = new THREE.WebGLRenderer({antialias: true, alpha:true});
@@ -355,7 +361,7 @@ export default class VThree
 
 
         this.stats.update(time);
-        this.scenes[this.NUM].update(time,this.isUpdate);
+        this.scenes[this.NUM].update(time);
         if(!this.scenes[this.NUM].isPostProcessing)
         {
             this.renderer.render(this.scenes[this.NUM].scene, this.scenes[this.NUM].camera);

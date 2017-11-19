@@ -35,7 +35,9 @@
     "doc": "docs"
   },
   "dependencies": {
+    "@types/dat-gui": "^0.6.3",
     "@types/three": "^0.84.20",
+    "dat.gui": "^0.6.1",
     "gsap": "^1.20.2",
     "jquery": "^3.2.1",
     "stats-js": "^1.0.0-alpha1",
