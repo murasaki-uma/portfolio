@@ -72,8 +72,6 @@ export default class ParticleGallerySystem
         this.texture.wrapS = THREE.ClampToEdgeWrapping;
         this.texture.wrapT = THREE.ClampToEdgeWrapping;
 
-
-
     }
 
 

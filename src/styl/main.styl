@@ -46,7 +46,13 @@ table {
   border-spacing: 0;
 }
 body {
-  background-color: #000000;
+
+  //background: -webkit-radial-gradient(#FFFFFF, #FF0000);
+  //background: radial-gradient(#FFFFFF, #C9C9C9);
+  //background: -moz-radial-gradient(center, ellipse cover, #442541 1%, #000000 99%); /* FF3.6-15 */
+  //background: -webkit-radial-gradient(center, ellipse cover, #442541 1%,#000000 99%); /* Chrome10-25,Safari5.1-6 */
+  //background: radial-gradient(ellipse at center, #442541 1%,#000000 99%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  //filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#442541', endColorstr='#000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
   margin: 0px;
   overflow: hidden;
   font-family: Monospace;
@@ -55,6 +61,8 @@ body {
   text-align: center;
   //cursor: pointer;
 }
+#wrapper
+  //background: -webkit-radial-gradient(#FFFFFF, #FF0000);
 #stats
   display: none;
 canvas

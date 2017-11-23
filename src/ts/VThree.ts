@@ -117,6 +117,7 @@ export default class VThree
         var windowHalfY = window.innerHeight / 2;
         this.scenes[this.NUM].camera.aspect = window.innerWidth / window.innerHeight;
         this.scenes[this.NUM].camera.updateProjectionMatrix();
+        this.scenes[this.NUM].onWindowResize();
         this.renderer.setSize( window.innerWidth, window.innerHeight );
 
         console.log("resize");

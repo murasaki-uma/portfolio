@@ -41,7 +41,7 @@
     "gsap": "^1.20.2",
     "jquery": "^3.2.1",
     "stats-js": "^1.0.0-alpha1",
-    "three": "^0.87.1"
+    "three": "^0.84.0"
   },
   "author": "",
   "license": "ISC",
