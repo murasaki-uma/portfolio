@@ -7,9 +7,9 @@ const testTexture = require('./texture/testTexture.jpg');
 import GPUComputationRenderer from './GPUComputationRenderer';
 const Mosaic_ComputePosition = require('./GLSL/Mosaic_ComputePosition.frag');
 const Mosaic_ComputeVelocity = require('./GLSL/Mosaic_ComputeVelocity.frag');
-const Mosaic_ComputeQuaternion = require('./GLSL/Mosaic_ComputeQuaternion.frag');
+const Mosaic_ComputeOriginal = require('./GLSL/Mosaic_ComputeOriginal.frag');
 const Mosaic_ComputeShadow = require('./GLSL/Mosaic_ComputeShadow.frag');
-const monalisa = require('./texture/Monet.jpg');
+const monalisa = require('./texture/gogh_small.jpg');
 // *********** ひとつめのシーン *********** //
 export default class MosaicBlockParticle{
 
@@ -22,31 +22,33 @@ export default class MosaicBlockParticle{
     private offsetAttribute:any;
     private orientationAttribute:any;
     private lastTime:number = 0;
-    private moveQ:THREE.Quaternion = new THREE.Quaternion( 0.5, 0.5, 0.5, 0.0 ).normalize();
-    private tmpQ:THREE.Quaternion = new THREE.Quaternion();
-    private currentQ:THREE.Quaternion = new THREE.Quaternion();
     private mesh:THREE.Mesh;
     private uniforms:any;
 
-    private WIDTH = 128*2;
+    private WIDTH = 128;
     private PARTICLES = this.WIDTH * this.WIDTH;
 
 
     private gpuCompute:any;
     private velocityVariable:any;
     private positionVariable:any;
-    private positionUniforms:any;
-    private velocityUniforms:any;
     private quaternionVariable:any;
     private quaternionUniforms:any;
-
-    private particleUniforms:any;
-    private effectController:any;
 
     private material:any;
     private shadowMaterial:any;
     private light:THREE.DirectionalLight;
     private shadowCamera;
+
+    private imgWidth:number = 75;
+    private imgHeight:number = 50;
+    private rotateVec:THREE.Vector3 = new THREE.Vector3(0,0,0);
+    private isRotate:boolean = false;
+    private timer:number = 0.0;
+    private cameraStartZ:number = 100;
+    private startTimer:number = 2.5;
+
+
 
 
 
@@ -54,7 +56,7 @@ export default class MosaicBlockParticle{
     constructor(renderer:THREE.WebGLRenderer) {
         this.renderer = renderer;
         this.createScene();
-
+        console.log(monalisa);
         console.log("scene created!")
     }
 
@@ -63,7 +65,7 @@ export default class MosaicBlockParticle{
     {
 
 
-        this.renderer.setClearColor(0x111111,1);
+        this.renderer.setClearColor(0xebe8ed,0);
         this.scene = new THREE.Scene();
 
         // 立方体のジオメトリーを作成
@@ -77,7 +79,7 @@ export default class MosaicBlockParticle{
 
         // カメラを作成
         this.camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 1000 );
-        this.camera.position.z = 130;
+        this.camera.position.z = this.cameraStartZ;
         // カメラ位置を設定
         // this.camera.position.z = 5;
 
@@ -187,20 +189,29 @@ export default class MosaicBlockParticle{
                     textureVelocity:{value:null},
                     // pre_texturePosition:{value:null},
                     // pre_textureVelocity:{value:null}
-                    textureQuaternion:{value:null},
+                    textureOriginal:{value:null},
                     shadowMap: { type: 't', value: this.light.shadow.map },
                     shadowMapSize: {type: "v2", value: this.light.shadow.mapSize},
                     shadowBias: {type: "f", value: this.light.shadow.bias},
                     shadowRadius: {type: "f", value: this.light.shadow.radius},
-                    uMatrix:{value:null}
+                    uMatrix:{value:null},
+                    imgWidth:{value:this.imgWidth},
+                    imgHeight:{value:this.imgHeight},
+                    near:{value:this.camera.near},
+                    far:{value:this.camera.far},
+                    cameraPos:{value:this.camera.position},
+                    sceneInvMatrix:{value:null},
+                    isStart:{value:this.startTimer}
                 };
-        this.material = new THREE.RawShaderMaterial( {
+        this.material = new THREE.ShaderMaterial( {
             uniforms: this.uniforms,
             vertexShader: vertex,
-            fragmentShader: fragment
+            fragmentShader: fragment,
+            shading: THREE.FlatShading,
+            transparent:true
         } );
 
-        this.shadowMaterial = new THREE.RawShaderMaterial( {
+        this.shadowMaterial = new THREE.ShaderMaterial( {
             uniforms: {
                 map: { value: texture},
                 time:{value:0.0},
@@ -235,14 +246,14 @@ export default class MosaicBlockParticle{
         // 今回はパーティクルの位置情報と、移動方向を保存するテクスチャを2つ用意します
         var dtPosition = this.gpuCompute.createTexture();
         var dtVelocity = this.gpuCompute.createTexture();
-        var dtQuaternion = this.gpuCompute.createTexture();
+        var dtOriginal = this.gpuCompute.createTexture();
         // テクスチャにGPUで計算するために初期情報を埋めていく
-        this.fillTextures( dtPosition, dtVelocity,dtQuaternion );
+        this.fillTextures( dtPosition, dtVelocity,dtOriginal );
 
         // shaderプログラムのアタッチ
         this.velocityVariable = this.gpuCompute.addVariable( "textureVelocity", Mosaic_ComputeVelocity, dtVelocity );
         this.positionVariable = this.gpuCompute.addVariable( "texturePosition", Mosaic_ComputePosition, dtPosition );
-        this.quaternionVariable = this.gpuCompute.addVariable( "textureQuaternion", Mosaic_ComputeQuaternion, dtQuaternion );
+        this.quaternionVariable = this.gpuCompute.addVariable( "textureOriginal", Mosaic_ComputeOriginal, dtOriginal );
 
         // 一連の関係性を構築するためのおまじない
         let variables = [ this.positionVariable, this.velocityVariable, this.quaternionVariable ];
@@ -281,8 +292,8 @@ export default class MosaicBlockParticle{
         for ( var k = 0, kl = posArray.length; k < kl; k += 4 ) {
             // Position
             var x, y, z;
-            x = Math.random()*100-50;
-            y = Math.random()*150-75;
+            x = Math.random()*this.imgWidth-this.imgWidth/2;
+            y = Math.random()*this.imgHeight-this.imgHeight/2;
             z = Math.random()*10-5;
             // posArrayの実態は一次元配列なので
             // x,y,z,wの順番に埋めていく。
@@ -310,7 +321,8 @@ export default class MosaicBlockParticle{
     // ******************************************************
     public click()
     {
-
+        this.isRotate = !this.isRotate;
+        this.startTimer = 3.0;
     }
 
     // ******************************************************
@@ -343,6 +355,44 @@ export default class MosaicBlockParticle{
     public update()
     {
 
+        var time = performance.now();
+
+        if(this.startTimer > 0)
+        {
+            this.startTimer -=0.01;
+        } else
+        {
+            this.uniforms.isStart.value = this.startTimer;
+            this.isRotate = true;
+        }
+
+        if(this.isRotate)
+        {
+            this.timer += 0.003;
+            this.timer = this.timer%(Math.PI*2);
+            // this.rotateVec.x += 0.001;
+            // this.rotateVec.y += 0.002;
+            // this.rotateVec.z += 0.0015;
+            // this.rotateVec.x = this.rotateVec.x%(Math.PI*2);
+            // this.rotateVec.y = this.rotateVec.y%(Math.PI*2);
+            // this.rotateVec.z = this.rotateVec.z%(Math.PI*2);
+            // this.mesh.position.z +=(30.0 - this.scene.position.z) * 0.03;
+            this.cameraStartZ += (30.0 - this.cameraStartZ) * 0.02;
+            this.camera.position.z = this.cameraStartZ + Math.sin(this.timer) * 40.0;
+        } else
+        {
+            var speed = 0.04;
+            this.rotateVec.x += (0.0 - this.rotateVec.x) * speed;
+            this.rotateVec.y += (0.0 - this.rotateVec.y) * speed;
+            this.rotateVec.z += (0.0 - this.rotateVec.z) * speed;
+            this.scene.position.z +=(0.0 - this.scene.position.z) * speed;
+            this.mesh.position.z +=(0.0 - this.scene.position.z) * speed;
+            this.camera.position.z +=( this.cameraStartZ  - this.camera.position.z) * speed;
+            this.cameraStartZ += (70.0 - this.cameraStartZ) * speed;
+            this.timer +=(0.0 -this.timer)*speed;
+        }
+
+        this.scene.rotation.setFromVector3(this.rotateVec);
         this.quaternionUniforms.pre_texturePosition = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
 
         // this.uniforms.pre_texturePosition.value = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
@@ -350,7 +400,7 @@ export default class MosaicBlockParticle{
 
         this.gpuCompute.compute();
 
-        this.uniforms.textureQuaternion.value = this.gpuCompute.getCurrentRenderTarget( this.quaternionVariable ).texture;
+        this.uniforms.textureOriginal.value = this.gpuCompute.getCurrentRenderTarget( this.quaternionVariable ).texture;
         this.uniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
         this.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
 
@@ -358,12 +408,12 @@ export default class MosaicBlockParticle{
         this.shadowMaterial.uniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
 
 
-        var time = performance.now();
+
         // this.mesh.rotation.y = time * 0.00005;
         var delta = ( time - this.lastTime ) / 5000;
         // this.tmpQ.set( this.moveQ.x * delta, this.moveQ.y * delta, this.moveQ.z * delta, 1 ).normalize();
-        this.uniforms.time.value = time;
-        this.shadowMaterial.uniforms.time.value = time;
+        this.uniforms.time.value = this.timer;
+        this.shadowMaterial.uniforms.time.value = this.timer;
         // for ( var i = 0, il = this.orientationAttribute.count; i < il; i ++ ) {
 
             // this.currentQ.fromArray( this.orientationAttribute.array, ( i * 4 ) );
@@ -372,7 +422,7 @@ export default class MosaicBlockParticle{
 
         // }
         // this.orientationAttribute.needsUpdate = true;
-        this.lastTime = time;
+        this.lastTime = this.timer;
 
 
         this.mesh.material = this.shadowMaterial;

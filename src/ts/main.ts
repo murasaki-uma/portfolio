@@ -13,7 +13,7 @@ import Scene02 from "./Scene02";
 import MosaicBlockParticle from "./MosaicBlockParticle";
 import ShadowParticle from "./ShadowParticleStudy";
 import Test from "./test";
-
+import TextureParticle from "./TextureParticle";
 
 class Main
 {
@@ -23,21 +23,17 @@ class Main
     public scene03:MosaicBlockParticle;
     public scene04:ShadowParticle;
     public Test:Test;
+    public scene05:TextureParticle;
 
 
     constructor() {
 
 
         this.vthree = new VThree();
-        // this.scene01 = new Scene01(this.vthree.renderer);
-        // this.scene02 = new Scene02(this.vthree.renderer);
-        this.scene03 = new MosaicBlockParticle(this.vthree.renderer);
-        // this.scene04 = new ShadowParticle(this.vthree.renderer);
+        // this.scene03 = new MosaicBlockParticle(this.vthree.renderer);
+        this.scene05 = new TextureParticle(this.vthree.renderer);
 
-        this.vthree.addScene(this.scene03);
-        // this.vthree.addScene(this.scene02);
-        // this.vthree.addScene(this.scene01);
-        // this.vthree.addScene(this.scene04);
+        this.vthree.addScene(this.scene05);
 
 
         this.vthree.draw();

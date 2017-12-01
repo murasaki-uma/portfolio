@@ -27,6 +27,8 @@ article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
 }
+html
+  height 100%
 body {
   line-height: 1;
 }
@@ -47,12 +49,16 @@ table {
 }
 body {
 
+
   //background: -webkit-radial-gradient(#FFFFFF, #FF0000);
   //background: radial-gradient(#FFFFFF, #C9C9C9);
   //background: -moz-radial-gradient(center, ellipse cover, #442541 1%, #000000 99%); /* FF3.6-15 */
   //background: -webkit-radial-gradient(center, ellipse cover, #442541 1%,#000000 99%); /* Chrome10-25,Safari5.1-6 */
   //background: radial-gradient(ellipse at center, #442541 1%,#000000 99%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
   //filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#442541', endColorstr='#000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+  position relative
+  width 100%
+  height 100%
   margin: 0px;
   overflow: hidden;
   font-family: Monospace;
@@ -63,6 +69,17 @@ body {
 }
 #wrapper
   //background: -webkit-radial-gradient(#FFFFFF, #FF0000);
+  overflow: hidden;
+  position relative
+  width 100%
+  height 100%
+  //background: -webkit-linear-gradient(-45deg, #a498d3 1%, #588d96 100%);
+  //background: -webkit-radial-gradient(ellipse at center, #2F1C5B 1%,#201A30 100%);
+  //background: -moz-radial-gradient(ellipse at center, #2F1C5B 1%,#201A30 100%);
+  //background: -o-radial-gradient(ellipse at center, #2F1C5B 1%,#201A30 100%);
+  //background: -ms-radial-gradient(ellipse at center, #2F1C5B 1%,#201A30 100%);
+  background: radial-gradient(ellipse at center, #272935 1%,#04081c 100%);
+
 #stats
   display: none;
 canvas

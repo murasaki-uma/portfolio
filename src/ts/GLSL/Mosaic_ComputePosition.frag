@@ -1,10 +1,10 @@
-#define delta 0.05
+#define delta 0.08
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 tmpPos = texture2D( texturePosition, uv );
     vec3 pos = tmpPos.xyz;
     vec4 tmpVel = texture2D( textureVelocity, uv );
-    vec4 tmpOrgPos = texture2D( textureQuaternion, uv );
+    vec4 tmpOrgPos = texture2D( textureOriginal, uv );
     // velが移動する方向(もう一つ下のcomputeShaderVelocityを参照)
     vec3 vel = tmpVel.xyz;
 //    vel.z *= 0.5;

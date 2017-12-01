@@ -99,6 +99,7 @@ export default class VThree
         this.cameras.push(scene.camera);
         let controls = new THREE.OrbitControls( scene.camera, this.renderer.domElement );
         controls.enableKeys = false;
+        controls.enabled = false;
         this.controls.push(controls);
 
     }

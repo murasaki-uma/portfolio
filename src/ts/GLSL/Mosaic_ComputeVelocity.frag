@@ -134,8 +134,8 @@ void main() {
     vec4 tmpVel = texture2D( textureVelocity, uv );
     vec4 tmpPos = texture2D( texturePosition, uv );
 
-    vec3 vel = curlNoise(tmpPos.xyz*0.02);
-    tmpVel.w -= 0.6;
+    vec3 vel = curlNoise(tmpPos.xyz*0.04);
+    tmpVel.w -= 0.8;
 //    vel.z *= 2.0;
 //    vec3 vel = tmpVel.xyz;
 //    vel.x *= 2.0;
