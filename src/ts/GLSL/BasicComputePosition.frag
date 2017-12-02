@@ -150,13 +150,21 @@ void main() {
 
 
     float distOrgPos = distance(original.xyz, vec3(0.,0.,0.));
-    float distOrgTh = distance(vec3(imgWidth/2.*(threshold+noise),imgHeight/2.*(threshold+noise),0.0), vec3(0.,0.,0.));
+    float distOrgTh = distance(vec3(imgWidth/5.*(threshold+noise),imgHeight/2.*(threshold+noise),0.0), vec3(0.,0.,0.));
     if(distOrgTh <= distOrgPos || threshold == 0.)
     {
 
-        pos += vel * 0.2;
+        pos += vel * 0.1;
         pos += normalize(original.xyz) * tmpVel.w;
+
+         if( distance(pos,  original.xyz) > 20.0)
+            {
+                pos = original.xyz;
+            }
+
     }
+
+
 
 
     // 移動する方向に速度を掛け合わせた数値を現在地に加える。

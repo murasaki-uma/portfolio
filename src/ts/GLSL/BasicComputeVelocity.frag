@@ -131,21 +131,31 @@
  uniform float threshold;
  uniform float imgWidth;
  uniform float imgHeight;
-
+uniform vec2 mouseAcceleration;
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 tmpVel = texture2D( textureVelocity, uv );
     vec4 original = texture2D( textureOriginal, uv);
     vec4 pos = texture2D( texturePosition, uv);
 //    voc3 normalizedOrgPos = normalize(original.xyz);
-    vec3 vel = curlNoise(pos.xyz*0.04)*0.5;
 
-    vel.x *= 1.5;
-    vel.z *= 1.5;
+    vec3 accelNoise = curlNoise( vec3(original.x,original.y,0.0)*0.05 );
 
-    float noise = snoise(original.xyz*0.1)*0.1;
+//    float accelY = mix(0.,mouseAcceleration.y*abs(accelNoise.y),threshold);
+//    float accelz = mix(mouseAcceleration.y*abs(accelNoise.y),0.,threshold);
+    float accelY = mouseAcceleration.y*abs(accelNoise.y);
+    float accelz = 0.;
+
+    vec3 vel = curlNoise(pos.xyz*0.035)*0.5 + vec3(mouseAcceleration.x*abs(accelNoise.x),accelY,accelz)*5.0;
+
+    vel.x *= 3.0;
+    vel.z *= 2.5;
+
+
+
+    float noise = snoise(original.xyz*0.2)*0.1;
     float distOrgPos = distance(original.xyz, vec3(0.,0.,0.));
-    float distOrgTh = distance(vec3(imgWidth/2.*(threshold+noise),imgHeight/2.*(threshold+noise),0.0), vec3(0.,0.,0.));
+    float distOrgTh = distance(vec3(imgWidth/5.*(threshold+noise),imgHeight/2.*(threshold+noise),0.0), vec3(0.,0.,0.));
     if(distOrgTh <= distOrgPos || threshold == 0.)
     {
 

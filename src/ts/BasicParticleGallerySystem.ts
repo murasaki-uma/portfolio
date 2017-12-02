@@ -32,11 +32,11 @@ export default class ParticleGallerySystem
 
 
     // gpgpuをするために必要なオブジェクト達
-    private gpuCompute:any;
-    private velocityVariable:any;
-    private positionVariable:any;
-    private originalVariable:any;
-    private animation01Variable:any;
+    public gpuCompute:any;
+    public velocityVariable:any;
+    public positionVariable:any;
+    public originalVariable:any;
+    public animation01Variable:any;
     public positionUniforms:any;
     public velocityUniforms:any;
     public particleUniforms:any;
@@ -49,6 +49,8 @@ export default class ParticleGallerySystem
     public texture:THREE.Texture;
 
     public isGpuUpdate:boolean = true;
+
+    public threshold:any = {value:0.0};
 
     constructor(scene:THREE.Scene, camera:THREE.PerspectiveCamera, renderer:THREE.WebGLRenderer)
     {
@@ -112,7 +114,7 @@ export default class ParticleGallerySystem
         this.velocityVariable = this.gpuCompute.addVariable( "textureVelocity", VelocityFrag, dtVelocity );
         this.positionVariable = this.gpuCompute.addVariable( "texturePosition", PositionFrag, dtPosition );
         this.originalVariable = this.gpuCompute.addVariable( "textureOriginal", originalFrag, dtOriginal );
-        this.animation01Variable = this.gpuCompute.addVariable( "textureAnimationValues", animation01Frag, dtAnimation01 );
+        this.animation01Variable = this.gpuCompute.addVariable( "textureAnimationValues01", animation01Frag, dtAnimation01 );
 
 
         // 一連の関係性を構築するためのおまじない
@@ -129,16 +131,18 @@ export default class ParticleGallerySystem
         this.animation01Uniforms = this.animation01Variable.material.uniforms;
 
 
-        this.positionUniforms.threshold = {value:1.0};
+        this.positionUniforms.threshold = this.threshold;
         this.positionUniforms.imgWidth = {value:this.imgWidth};
         this.positionUniforms.imgHeight = {value:this.imgHeight};
 
-        this.velocityUniforms.threshold = {value:1.0};
+        this.velocityUniforms.threshold = this.threshold;
         this.velocityUniforms.imgWidth = {value:this.imgWidth};
         this.velocityUniforms.imgHeight = {value:this.imgHeight};
+        this.velocityUniforms.mouseAcceleration = {value:new THREE.Vector2(0,0)};
 
 
-        this.animation01Uniforms.threshold = {value:1.0};
+
+        this.animation01Uniforms.threshold = this.threshold;
         this.animation01Uniforms.imgWidth = {value:this.imgWidth};
         this.animation01Uniforms.imgHeight = {value:this.imgHeight};
 
@@ -201,6 +205,7 @@ export default class ParticleGallerySystem
             texturePosition: { value: null },
             textureVelocity: { value: null },
             textureOriginal: { value: null },
+            textureAnimationValues01: { value:null },
             pointSize:{value:1.5},
             corner:{value:1.0},
             texture01:{value:this.texture},
@@ -273,7 +278,7 @@ export default class ParticleGallerySystem
 
 
             anm01Array[ k + 0 ] = 1.0; // corner
-            anm01Array[ k + 1 ] = y;
+            anm01Array[ k + 1 ] = 1.3; // pointsize;
             anm01Array[ k + 2 ] = z;
             anm01Array[ k + 3 ] = 0;
         }
@@ -310,6 +315,7 @@ export default class ParticleGallerySystem
         this.particleUniforms.texturePosition.value = this.gpuCompute.getCurrentRenderTarget( this.positionVariable ).texture;
         this.particleUniforms.textureVelocity.value = this.gpuCompute.getCurrentRenderTarget( this.velocityVariable ).texture;
         this.particleUniforms.textureOriginal.value = this.gpuCompute.getCurrentRenderTarget( this.originalVariable ).texture;
+        this.particleUniforms.textureAnimationValues01.value = this.gpuCompute.getCurrentRenderTarget( this.animation01Variable ).texture;
 
 
 
