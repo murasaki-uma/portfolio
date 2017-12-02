@@ -15,8 +15,7 @@ const VelocityFrag = require('./GLSL/BasicComputeVelocity.frag');
 const PositionFrag = require('./GLSL/BasicComputePosition.frag');
 const originalFrag = require('./GLSL/BasicComputeOriginal.frag');
 const monalisa = require('./texture/MonaLisa.png');
-
-
+const animation01Frag = require('./GLSL/BasicComputeAnimationValues.frag');
 
 
 export default class ParticleGallerySystem
@@ -37,9 +36,11 @@ export default class ParticleGallerySystem
     private velocityVariable:any;
     private positionVariable:any;
     private originalVariable:any;
+    private animation01Variable:any;
     public positionUniforms:any;
-    private velocityUniforms:any;
+    public velocityUniforms:any;
     public particleUniforms:any;
+    public animation01Uniforms:any;
     private effectController:any;
 
     public imgWidth = 97;
@@ -102,29 +103,44 @@ export default class ParticleGallerySystem
         let dtPosition = this.gpuCompute.createTexture();
         let dtVelocity = this.gpuCompute.createTexture();
         let dtOriginal = this.gpuCompute.createTexture();
+        let dtAnimation01 = this.gpuCompute.createTexture();
 
         // テクスチャにGPUで計算するために初期情報を埋めていく
-        this.fillTextures( dtPosition, dtVelocity, dtOriginal);
+        this.fillTextures( dtPosition, dtVelocity, dtOriginal, dtAnimation01);
 
         // shaderプログラムのアタッチ
         this.velocityVariable = this.gpuCompute.addVariable( "textureVelocity", VelocityFrag, dtVelocity );
         this.positionVariable = this.gpuCompute.addVariable( "texturePosition", PositionFrag, dtPosition );
         this.originalVariable = this.gpuCompute.addVariable( "textureOriginal", originalFrag, dtOriginal );
+        this.animation01Variable = this.gpuCompute.addVariable( "textureAnimationValues", animation01Frag, dtAnimation01 );
+
 
         // 一連の関係性を構築するためのおまじない
-        let variables = [this.positionVariable, this.velocityVariable, this.originalVariable];
+        let variables = [this.positionVariable, this.velocityVariable, this.originalVariable, this.animation01Variable];
         this.gpuCompute.setVariableDependencies( this.velocityVariable, variables );
         this.gpuCompute.setVariableDependencies( this.positionVariable, variables );
         this.gpuCompute.setVariableDependencies( this.originalVariable, variables );
+        this.gpuCompute.setVariableDependencies( this.animation01Variable, variables );
 
 
 
         this.positionUniforms = this.positionVariable.material.uniforms;
+        this.velocityUniforms = this.velocityVariable.material.uniforms;
+        this.animation01Uniforms = this.animation01Variable.material.uniforms;
 
 
         this.positionUniforms.threshold = {value:1.0};
         this.positionUniforms.imgWidth = {value:this.imgWidth};
         this.positionUniforms.imgHeight = {value:this.imgHeight};
+
+        this.velocityUniforms.threshold = {value:1.0};
+        this.velocityUniforms.imgWidth = {value:this.imgWidth};
+        this.velocityUniforms.imgHeight = {value:this.imgHeight};
+
+
+        this.animation01Uniforms.threshold = {value:1.0};
+        this.animation01Uniforms.imgWidth = {value:this.imgWidth};
+        this.animation01Uniforms.imgHeight = {value:this.imgHeight};
 
         // error処理
         var error = this.gpuCompute.init();
@@ -210,12 +226,13 @@ export default class ParticleGallerySystem
     }
 
 
-    public fillTextures( texturePosition, textureVelocity, textureOriginal ) {
+    public fillTextures( texturePosition, textureVelocity, textureOriginal, textureAnimation01 ) {
 
         // textureのイメージデータをいったん取り出す
         var posArray = texturePosition.image.data;
         var velArray = textureVelocity.image.data;
         var orgArray = textureOriginal.image.data;
+        var anm01Array = textureAnimation01.image.data;
 
         // パーティクルの初期の位置は、ランダムなXZに平面おく。
         // 板状の正方形が描かれる
@@ -252,7 +269,13 @@ export default class ParticleGallerySystem
             velArray[ k + 0 ] = Math.random()*2-1;
             velArray[ k + 1 ] = Math.random()*2-1;
             velArray[ k + 2 ] = Math.random()*2-1;
-            velArray[ k + 3 ] = Math.random()*2-1;
+            velArray[ k + 3 ] = 0.5; // speed
+
+
+            anm01Array[ k + 0 ] = 1.0; // corner
+            anm01Array[ k + 1 ] = y;
+            anm01Array[ k + 2 ] = z;
+            anm01Array[ k + 3 ] = 0;
         }
     }
 

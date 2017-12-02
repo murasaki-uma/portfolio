@@ -40,6 +40,7 @@ export default class SceneTemplate{
         // this.particleGarllerySystem.setTexture(monalisa);
         this.particleGarllerySystem.init(97,147,monalisa);
         this.particleGarllerySystem.particleUniforms.pointSize.value = 1.0;
+        this.particleGarllerySystem.positionUniforms.threshold.value = 1.5;
 
 
 
@@ -92,13 +93,15 @@ export default class SceneTemplate{
         this.particleGarllerySystem.update(time);
         if(this.particleGarllerySystem.positionUniforms.threshold.value > 0.0)
         {
-            this.particleGarllerySystem.positionUniforms.threshold.value -= 0.005;
+            this.particleGarllerySystem.positionUniforms.threshold.value -= 0.004;
 
             if(this.particleGarllerySystem.positionUniforms.threshold.value < 0.0)
             {
                 this.particleGarllerySystem.positionUniforms.threshold.value  = 0.0;
             }
         }
+
+        this.particleGarllerySystem.velocityUniforms.threshold.value = this.particleGarllerySystem.positionUniforms.threshold.value;
 
     }
 
