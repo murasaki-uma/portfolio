@@ -135,7 +135,7 @@ vec3 curlNoise( vec3 p ){
 
 
 
-
+uniform vec2 mouseAcceleration;
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 tmpPos = texture2D( texturePosition, uv );
@@ -145,7 +145,10 @@ void main() {
     // velが移動する方向(もう一つ下のcomputeShaderVelocityを参照)
     vec3 vel = tmpVel.xyz;
 
-
+    vec3 accelNoise = curlNoise( vec3(original.x,original.y,0.0)*0.05 );
+    float accelY = mouseAcceleration.y+accelNoise.y;
+    float accelX = mouseAcceleration.x+accelNoise.x;
+    float accelD = distance(vec2(mouseAcceleration.x,mouseAcceleration.y),vec2(0.,0.));
     float noise = snoise(original.xyz*0.1)*0.1;
 
 
@@ -157,7 +160,7 @@ void main() {
         pos += vel * 0.1;
         pos += normalize(original.xyz) * tmpVel.w;
 
-         if( distance(pos,  original.xyz) > 20.0)
+         if( distance(pos,  original.xyz) > 20.0+accelD*100.0)
             {
                 pos = original.xyz;
             }

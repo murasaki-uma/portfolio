@@ -132,7 +132,8 @@ uniform float imgHeight;
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 tempAnimationValue = texture2D( textureAnimationValues01, uv );
-
+    vec4 tmpPos = texture2D( texturePosition, uv );
+    vec3 pos = tmpPos.xyz;
 
     vec4 original = texture2D( textureOriginal, uv);
     vec4 tmpVel = texture2D( textureVelocity, uv );
@@ -146,6 +147,10 @@ void main() {
         tempAnimationValue.x += (0.1 - tempAnimationValue.x) * 0.08;
 
 //        tempAnimationValue.y += (0.5 - tempAnimationValue.y) * 0.08;
+        if( distance(pos,  original.xyz) > 20.0)
+        {
+            tempAnimationValue.y = 1.0;
+        }
     }
 
 

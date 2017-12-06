@@ -132,6 +132,7 @@
  uniform float imgWidth;
  uniform float imgHeight;
 uniform vec2 mouseAcceleration;
+uniform vec2 mouseXY;
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 tmpVel = texture2D( textureVelocity, uv );
@@ -146,11 +147,15 @@ void main() {
     float accelY = mouseAcceleration.y*abs(accelNoise.y);
     float accelz = 0.;
 
-    vec3 vel = curlNoise(pos.xyz*0.035)*0.5 + vec3(mouseAcceleration.x*abs(accelNoise.x),accelY,accelz)*5.0;
 
-    vel.x *= 3.0;
-    vel.z *= 2.5;
+    float moused = 1.0 - min(distance(pos.xy,mouseXY),10.0)/10.;
 
+
+    vec3 vel = curlNoise(pos.xyz*0.028)*0.5 + vec3(mouseAcceleration.x*abs(accelNoise.x),accelY,accelz)*12.0;
+
+    vel.x *= 1.5;
+    vel.z = abs(vel.z)*2.5;
+//    vel *= moused;
 
 
     float noise = snoise(original.xyz*0.2)*0.1;

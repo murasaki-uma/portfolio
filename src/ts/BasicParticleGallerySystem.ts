@@ -21,7 +21,7 @@ const animation01Frag = require('./GLSL/BasicComputeAnimationValues.frag');
 export default class ParticleGallerySystem
 {
 
-    private WIDTH = 128;
+    private WIDTH = 128*2.;
     private PARTICLES = this.WIDTH * this.WIDTH;
 
 
@@ -134,11 +134,14 @@ export default class ParticleGallerySystem
         this.positionUniforms.threshold = this.threshold;
         this.positionUniforms.imgWidth = {value:this.imgWidth};
         this.positionUniforms.imgHeight = {value:this.imgHeight};
+        this.positionUniforms.mouseXY = {value: new THREE.Vector2(0,0)};
+        this.positionUniforms.mouseAcceleration = {value:new THREE.Vector2(0,0)};
 
         this.velocityUniforms.threshold = this.threshold;
         this.velocityUniforms.imgWidth = {value:this.imgWidth};
         this.velocityUniforms.imgHeight = {value:this.imgHeight};
         this.velocityUniforms.mouseAcceleration = {value:new THREE.Vector2(0,0)};
+        this.velocityUniforms.mouseXY = {value: new THREE.Vector2(0,0)};
 
 
 
@@ -278,7 +281,7 @@ export default class ParticleGallerySystem
 
 
             anm01Array[ k + 0 ] = 1.0; // corner
-            anm01Array[ k + 1 ] = 1.3; // pointsize;
+            anm01Array[ k + 1 ] = 1.5; // isRestart;
             anm01Array[ k + 2 ] = z;
             anm01Array[ k + 3 ] = 0;
         }
@@ -301,7 +304,7 @@ export default class ParticleGallerySystem
         // this.camera.updateProjectionMatrix();
         // this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.particleUniforms.cameraConstant.value = this.getCameraConstant( this.camera );
-    }
+    };
 
 
     public update =(time?)=> {

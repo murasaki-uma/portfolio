@@ -39,6 +39,7 @@ export default class SceneTemplate{
     // ******************************************************
     constructor(renderer:THREE.WebGLRenderer) {
         this.renderer = renderer;
+        this.renderer.setPixelRatio(1);
         this.createScene();
 
         console.log("scene created!")
@@ -146,8 +147,12 @@ export default class SceneTemplate{
     // ******************************************************
     public mouseMove(e:MouseEvent)
     {
-        console.log(e);
+        // console.log(e);
         this.mouseXY.set(e.x,e.y);
+
+        let x = e.x/window.innerWidth - 0.5;
+        let y = e.y/window.innerHeight - 0.5;
+        this.particleGarllerySystem.velocityUniforms.mouseXY.value = new THREE.Vector2(x,y);
     }
 
     // ******************************************************
@@ -159,7 +164,7 @@ export default class SceneTemplate{
         {
             this.renderer.render(this.scene,this.camera,this.target);
             this.motionBlurUniforms.texture.value = this.target.texture;
-            this.motionBlurUniforms.alpha.value = 1.0;
+            this.motionBlurUniforms.alpha.value = 0.6;
             this.isCameraIn = !this.isCameraIn;
         }
     }
@@ -177,31 +182,33 @@ export default class SceneTemplate{
 
 
 
+
+        if(this.particleGarllerySystem.threshold.value <= 0.1)
+        {
+            // this.sceneRotate.x += (-Math.PI/2.0 - this.sceneRotate.x) * 0.01;
+            // this.sceneRotate.y += 0.01;
+            // this.scene.rotation.set(this.sceneRotate.x,this.sceneRotate.y,0);
+
+
+        }
+
+        // this.camera.position.z += (50.0 - this.camera.position.z) * 0.01;
+        this.mouseTrack.x += (this.mouseXY.x - this.mouseTrack.x) * 0.03;
+        this.mouseTrack.y += (this.mouseXY.y - this.mouseTrack.y) * 0.03;
+
+
+        this.mouseAcceleration.set(
+            (this.mouseXY.x - this.mouseTrack.x)/window.innerWidth,
+            -(this.mouseXY.y - this.mouseTrack.y)/window.innerHeight
+        );
+
+        // console.log(this.mouseAcceleration);
+        this.particleGarllerySystem.velocityUniforms.mouseAcceleration.value = this.mouseAcceleration;
+        this.particleGarllerySystem.positionUniforms.mouseAcceleration.value = this.mouseAcceleration;
+
         if(this.isStart)
         {
-            if(this.particleGarllerySystem.threshold.value <= 0.1)
-            {
-                // this.sceneRotate.x += (-Math.PI/2.0 - this.sceneRotate.x) * 0.01;
-                // this.sceneRotate.y += 0.01;
-                // this.scene.rotation.set(this.sceneRotate.x,this.sceneRotate.y,0);
 
-
-            }
-
-            // this.camera.position.z += (50.0 - this.camera.position.z) * 0.01;
-            this.mouseTrack.x += (this.mouseXY.x - this.mouseTrack.x) * 0.03;
-            this.mouseTrack.y += (this.mouseXY.y - this.mouseTrack.y) * 0.03;
-
-
-            this.mouseAcceleration.set(
-                (this.mouseXY.x - this.mouseTrack.x)/window.innerWidth,
-                -(this.mouseXY.y - this.mouseTrack.y)/window.innerHeight
-            );
-
-            console.log(this.mouseAcceleration);
-            this.particleGarllerySystem.velocityUniforms.mouseAcceleration.value = this.mouseAcceleration;
-
-            this.particleGarllerySystem.update(time);
             if(this.particleGarllerySystem.threshold.value > 0.0)
             {
                 this.particleGarllerySystem.threshold.value -= 0.008;
@@ -213,25 +220,25 @@ export default class SceneTemplate{
 
 
             }
-
-            if(!this.isCameraIn)
-            {
-                this.camera.position.z += (80.0 - this.camera.position.z) * 0.1;
-            }
-            else
-            {
-                this.camera.position.z += (40.0 - this.camera.position.z) * 0.1;
-            }
-
-            // if(this.motionBlurUniforms.alpha.value > 0.01)
-            // {
-                this.motionBlurUniforms.alpha.value += (0.0 - this.motionBlurUniforms.alpha.value ) * 0.15;
-            // }
         }
+        if(!this.isCameraIn)
+        {
+            this.camera.position.z += (80.0 - this.camera.position.z) * 0.1;
+        }
+        else
+        {
+            this.camera.position.z += (40.0 - this.camera.position.z) * 0.1;
+        }
+
+        // if(this.motionBlurUniforms.alpha.value > 0.01)
+        // {
+            this.motionBlurUniforms.alpha.value += (0.0 - this.motionBlurUniforms.alpha.value ) * 0.15;
+        // }
+
 
         this.overImageUniforms.textureOriginal.value = this.particleGarllerySystem.gpuCompute.getCurrentRenderTarget( this.particleGarllerySystem.originalVariable ).texture;
 
-
+        this.particleGarllerySystem.update(time);
         this.pre_mouseXY.set(
             this.mouseXY.x,
             this.mouseXY.y
